@@ -1,0 +1,220 @@
+// ============================================================
+// DATABASE SCHEMA
+// Business Management / Digitalization Platform
+// 3 Investors + 1 Admin
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  INVESTOR
+}
+
+enum PaymentMethodType {
+  CARD
+  CASH
+}
+
+enum TransactionType {
+  LOAN
+  BALANCE_SPENDING
+}
+
+enum NotificationType {
+  LOAN
+  BALANCE_SPENDING
+  BUSINESS_VALUE_CHANGED
+  SYSTEM
+}
+
+// ------------------------------------------------------------
+// USERS & AUTH
+// ------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  avatarUrl    String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 1-to-1 relations (only meaningful for INVESTOR role)
+  investment Investment?
+  ownership  Ownership?
+  balance    Balance?
+
+  cards               Card[]
+  notifications       Notification[]
+  ledgerEntries       LedgerEntry[]
+  initiatedTxns       Transaction[]           @relation("initiator")
+  auditLogsAsActor    AuditLog[]              @relation("actor")
+  businessValueEdits  BusinessValueHistory[]  @relation("changedBy")
+
+  @@index([role])
+}
+
+// ------------------------------------------------------------
+// BUSINESS VALUE
+// ------------------------------------------------------------
+
+model Business {
+  id           String   @id @default(cuid())
+  name         String
+  // Stored as smallest whole UZS unit (integer). No floating point.
+  currentValue BigInt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  valueHistory BusinessValueHistory[]
+}
+
+model BusinessValueHistory {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+  value       BigInt
+  changedById String
+  changedBy   User     @relation("changedBy", fields: [changedById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+// ------------------------------------------------------------
+// OWNERSHIP (exact fraction, never decimal in core logic)
+// ------------------------------------------------------------
+
+model Ownership {
+  id          String @id @default(cuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id])
+  numerator   Int    // e.g. 1
+  denominator Int    // e.g. 3  -> ownership = numerator/denominator
+  updatedAt   DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// INVESTMENT (initial capital contributed - separate from balance/loans)
+// ------------------------------------------------------------
+
+model Investment {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  initialAmount BigInt
+  createdAt     DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// BALANCE (schot) - current cached balance, always derivable from LedgerEntry sum
+// ------------------------------------------------------------
+
+model Balance {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  currentAmount BigInt   @default(0) // can be negative
+  updatedAt     DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// TRANSACTIONS (Loan / Balance Spending) - immutable, atomic
+// ------------------------------------------------------------
+
+model Transaction {
+  id                 String             @id @default(cuid())
+  type               TransactionType
+  amount             BigInt             // always positive; meaning derived from type + ledger entries
+  initiatorUserId    String
+  initiator          User               @relation("initiator", fields: [initiatorUserId], references: [id])
+  paymentMethodType  PaymentMethodType?
+  cardId             String?
+  card               Card?              @relation(fields: [cardId], references: [id])
+  description        String?
+  createdAt          DateTime           @default(now())
+
+  ledgerEntries LedgerEntry[]
+
+  @@index([type, createdAt])
+}
+
+// Double-entry style ledger. For a LOAN: 3 entries whose deltas sum to 0.
+// For BALANCE_SPENDING: 1 entry (delta = -amount for the spender).
+model LedgerEntry {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  delta         BigInt      // signed
+  balanceAfter  BigInt      // snapshot for fast history rendering
+  createdAt     DateTime    @default(now())
+
+  @@index([userId, createdAt])
+  @@index([transactionId])
+}
+
+// ------------------------------------------------------------
+// CARDS (masked, tokenized)
+// ------------------------------------------------------------
+
+model Card {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  lastFour     String   // only last 4 digits ever stored in plain form
+  encryptedRef String   // encrypted/tokenized full reference, never exposed to UI
+  label        String?  // optional nickname
+  createdAt    DateTime @default(now())
+
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+// ------------------------------------------------------------
+// NOTIFICATIONS
+// ------------------------------------------------------------
+
+model Notification {
+  id        String            @id @default(cuid())
+  userId    String?           // null = broadcast to all
+  user      User?             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  message   String
+  isRead    Boolean           @default(false)
+  createdAt DateTime          @default(now())
+
+  @@index([userId, isRead])
+}
+
+// ------------------------------------------------------------
+// AUDIT LOG (who changed what in the SYSTEM - distinct from business History)
+// ------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation("actor", fields: [actorId], references: [id])
+  action     String   // e.g. "BUSINESS_VALUE_CHANGED", "LOAN_EDITED", "USER_DELETED"
+  entityType String   // e.g. "Business", "Transaction", "User"
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
