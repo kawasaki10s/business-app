@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { requireAuth, canActOnUser, UnauthenticatedError, UnauthorizedError } from '@/lib/permissions';
 import { encryptCardRef, maskCardNumber } from '@/lib/cardEncryption';
 import { serializeBigInt } from '@/lib/serialize';
+export const dynamic = 'force-dynamic';
 
 const createCardSchema = z.object({
   cardNumber: z.string().min(12).max(19),

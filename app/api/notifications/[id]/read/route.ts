@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireAuth, UnauthenticatedError } from '@/lib/permissions';
+export const dynamic = 'force-dynamic';
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   try {

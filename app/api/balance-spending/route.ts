@@ -6,6 +6,7 @@ import { computeBalanceSpendingDelta, InvalidSpendingError } from '@/lib/finance
 import { createBroadcastNotification } from '@/lib/notifications';
 import { serializeBigInt, formatUZS } from '@/lib/serialize';
 import { NotificationType, TransactionType } from '@prisma/client';
+export const dynamic = 'force-dynamic';
 
 const spendSchema = z.object({
   amount: z.number().int().positive(),

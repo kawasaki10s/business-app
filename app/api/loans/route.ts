@@ -6,6 +6,7 @@ import { computeLoanLedgerDeltas, InvalidLoanError } from '@/lib/finance/loan';
 import { createBroadcastNotification } from '@/lib/notifications';
 import { serializeBigInt, formatUZS } from '@/lib/serialize';
 import { NotificationType, PaymentMethodType, TransactionType, Role } from '@prisma/client';
+export const dynamic = 'force-dynamic';
 
 const loanSchema = z.object({
   amount: z.number().int().positive(),

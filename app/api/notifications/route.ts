@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { requireAuth, requirePermission, UnauthenticatedError, UnauthorizedError } from '@/lib/permissions';
 import { serializeBigInt } from '@/lib/serialize';
 import { NotificationType } from '@prisma/client';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {

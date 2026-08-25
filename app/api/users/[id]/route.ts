@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { requireAdmin, UnauthenticatedError, UnauthorizedError } from '@/lib/permissions';
 import { recordAuditLog } from '@/lib/auditLog';
 import { serializeBigInt } from '@/lib/serialize';
+export const dynamic = 'force-dynamic';
 
 const updateSchema = z.object({
   name: z.string().min(2).optional(),

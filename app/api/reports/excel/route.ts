@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
 import { prisma } from '@/lib/db';
 import { requirePermission, UnauthenticatedError, UnauthorizedError } from '@/lib/permissions';
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
