@@ -5,10 +5,11 @@ import { requireAuth, requirePermission, UnauthenticatedError, UnauthorizedError
 import { serializeBigInt } from '@/lib/serialize';
 import { NotificationType } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const user = await requireAuth();
-    // Each user sees notifications addressed to them OR broadcast (userId = null)
     const notifications = await prisma.notification.findMany({
       where: { OR: [{ userId: user.id }, { userId: null }] },
       orderBy: { createdAt: 'desc' },
@@ -24,7 +25,7 @@ export async function GET() {
 
 const sendSchema = z.object({
   message: z.string().min(1),
-  userId: z.string().optional(), // omit = broadcast to everyone
+  userId: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
