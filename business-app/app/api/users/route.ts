@@ -7,6 +7,8 @@ import { recordAuditLog } from '@/lib/auditLog';
 import { serializeBigInt } from '@/lib/serialize';
 import { Role } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     await requireAdmin();
