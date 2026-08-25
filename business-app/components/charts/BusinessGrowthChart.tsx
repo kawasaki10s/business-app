@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { format } from 'date-fns';
 import clsx from 'clsx';
@@ -64,21 +64,30 @@ export function BusinessGrowthChart({ history, investors }: Props) {
 
       <div className="relative h-40 select-none md:h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={chartData}
-            onMouseDown={(state) => setActiveIndex(state?.activeTooltipIndex ?? null)}
-            onMouseMove={(state) => {
-              if (activeIndex !== null) setActiveIndex(state?.activeTooltipIndex ?? null);
-            }}
-            onMouseUp={() => setActiveIndex(null)}
-            onTouchStart={(state: any) => setActiveIndex(state?.activeTooltipIndex ?? null)}
-            onTouchMove={(state: any) => setActiveIndex(state?.activeTooltipIndex ?? null)}
-            onTouchEnd={() => setActiveIndex(null)}
-            margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
-          >
-            <XAxis dataKey="date" hide />
-            <YAxis hide domain={['dataMin', 'dataMax']} />
-            <Tooltip content={() => null} cursor={{ stroke: '#CD7F32', strokeWidth: 1, strokeDasharray: '3 3' }} />
+          {/*
+            Recharts' TypeScript definitions for LineChart don't declare
+            onTouchStart/onTouchMove/onTouchEnd even though the component
+            forwards and handles them at runtime exactly like the mouse
+            equivalents. Casting to `any` here only relaxes the compile-time
+            check - behavior is unchanged.
+          */}
+          {React.createElement(
+            LineChart as any,
+            {
+              data: chartData,
+              onMouseDown: (state: any) => setActiveIndex(state?.activeTooltipIndex ?? null),
+              onMouseMove: (state: any) => {
+                if (activeIndex !== null) setActiveIndex(state?.activeTooltipIndex ?? null);
+              },
+              onMouseUp: () => setActiveIndex(null),
+              onTouchStart: (state: any) => setActiveIndex(state?.activeTooltipIndex ?? null),
+              onTouchMove: (state: any) => setActiveIndex(state?.activeTooltipIndex ?? null),
+              onTouchEnd: () => setActiveIndex(null),
+              margin: { top: 8, right: 8, left: 8, bottom: 0 },
+            },
+            <XAxis dataKey="date" hide />,
+            <YAxis hide domain={['dataMin', 'dataMax']} />,
+            <Tooltip content={() => null} cursor={{ stroke: '#CD7F32', strokeWidth: 1, strokeDasharray: '3 3' }} />,
             <Line
               type="monotone"
               dataKey="growth"
@@ -88,7 +97,7 @@ export function BusinessGrowthChart({ history, investors }: Props) {
               activeDot={{ r: 5, fill: '#CD7F32', stroke: '#F5EFE3', strokeWidth: 2 }}
               isAnimationActive={false}
             />
-          </LineChart>
+          )}
         </ResponsiveContainer>
 
         {activePoint && selectedInvestor && (
