@@ -7,6 +7,8 @@ import { createBroadcastNotification } from '@/lib/notifications';
 import { serializeBigInt, formatUZS } from '@/lib/serialize';
 import { NotificationType } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 const updateSchema = z.object({
   newValue: z.number().int().positive(),
 });
