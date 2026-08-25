@@ -5,10 +5,12 @@ import { requireAuth, canActOnUser, UnauthenticatedError, UnauthorizedError } fr
 import { encryptCardRef, maskCardNumber } from '@/lib/cardEncryption';
 import { serializeBigInt } from '@/lib/serialize';
 
+export const dynamic = 'force-dynamic';
+
 const createCardSchema = z.object({
   cardNumber: z.string().min(12).max(19),
   label: z.string().optional(),
-  userId: z.string().optional(), // admin can add a card for another user
+  userId: z.string().optional(),
 });
 
 export async function GET() {
