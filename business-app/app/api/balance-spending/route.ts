@@ -7,6 +7,8 @@ import { createBroadcastNotification } from '@/lib/notifications';
 import { serializeBigInt, formatUZS } from '@/lib/serialize';
 import { NotificationType, TransactionType } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 const spendSchema = z.object({
   amount: z.number().int().positive(),
 });
@@ -24,7 +26,6 @@ export async function POST(req: NextRequest) {
         update: {},
       });
 
-      // Re-check inside the transaction to avoid a race between read and write
       const deltas = computeBalanceSpendingDelta(sessionUser.id, amount, balance.currentAmount);
 
       const txnRecord = await tx.transaction.create({
