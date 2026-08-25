@@ -6,6 +6,8 @@ import { requireAdmin, UnauthenticatedError, UnauthorizedError } from '@/lib/per
 import { recordAuditLog } from '@/lib/auditLog';
 import { serializeBigInt } from '@/lib/serialize';
 
+export const dynamic = 'force-dynamic';
+
 const updateSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email().optional(),
@@ -56,7 +58,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     const existing = await prisma.user.findUnique({ where: { id: params.id } });
     if (!existing) return NextResponse.json({ error: 'Foydalanuvchi topilmadi' }, { status: 404 });
 
-    // Soft-delete (deactivate) instead of hard delete - preserves transaction/history integrity
     await prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id: params.id }, data: { isActive: false } });
       await recordAuditLog(tx, {
