@@ -5,6 +5,8 @@ import { prisma } from '@/lib/db';
 import { requirePermission, UnauthenticatedError, UnauthorizedError } from '@/lib/permissions';
 import { formatUZS } from '@/lib/serialize';
 
+export const dynamic = 'force-dynamic';
+
 const styles = StyleSheet.create({
   page: { padding: 32, fontSize: 10, color: '#3B3028' },
   title: { fontSize: 18, marginBottom: 4, color: '#4B3621' },
