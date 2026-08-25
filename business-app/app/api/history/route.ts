@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db';
 import { requirePermission, UnauthenticatedError, UnauthorizedError } from '@/lib/permissions';
 import { serializeBigInt } from '@/lib/serialize';
 
+export const dynamic = 'force-dynamic';
+
 // ------------------------------------------------------------
 // GLOBAL HISTORY: identical for all 3 investors + admin.
 // This intentionally does NOT filter by requesting user - the
