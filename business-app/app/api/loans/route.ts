@@ -7,11 +7,12 @@ import { createBroadcastNotification } from '@/lib/notifications';
 import { serializeBigInt, formatUZS } from '@/lib/serialize';
 import { NotificationType, PaymentMethodType, TransactionType, Role } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 const loanSchema = z.object({
   amount: z.number().int().positive(),
   paymentMethodType: z.nativeEnum(PaymentMethodType),
   cardId: z.string().optional(),
-  // Admin only: allows creating a loan on behalf of another investor
   onBehalfOfUserId: z.string().optional(),
 });
 
@@ -22,7 +23,6 @@ export async function POST(req: NextRequest) {
 
     const borrowerId = body.onBehalfOfUserId ?? sessionUser.id;
 
-    // Only admin may create a loan for someone else
     if (body.onBehalfOfUserId && body.onBehalfOfUserId !== sessionUser.id) {
       await requirePermission('CREATE_LOAN_FOR_OTHERS');
     } else {
@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Karta tanlanishi shart" }, { status: 400 });
     }
 
-    // All 3 investors, in a stable order - required by the loan split logic
     const investors = await prisma.user.findMany({
       where: { role: Role.INVESTOR },
       orderBy: { createdAt: 'asc' },
@@ -51,10 +50,6 @@ export async function POST(req: NextRequest) {
     const allIds = investors.map((i) => i.id);
     const deltas = computeLoanLedgerDeltas(borrowerId, amount, allIds);
 
-    // ------------------------------------------------------------
-    // ATOMIC TRANSACTION: Transaction + all LedgerEntries + Balance
-    // updates + Notification all commit together, or none do.
-    // ------------------------------------------------------------
     const result = await prisma.$transaction(async (tx) => {
       if (body.cardId) {
         const card = await tx.card.findUnique({ where: { id: body.cardId } });
