@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/permissions';
 import { formatUZS } from '@/lib/serialize';
 import { computeSingleOwnershipValue, formatOwnershipPercent } from '@/lib/finance';
 import { Card, CardLabel, CardValue } from '@/components/ui/Card';
+export const dynamic = 'force-dynamic';
 
 export default async function InvestmentsPage() {
   const user = await requireAuth();
