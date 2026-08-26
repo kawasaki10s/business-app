@@ -3,6 +3,7 @@ import { formatUZS } from '@/lib/serialize';
 import { computeGrowthPercent, formatGrowthPercent } from '@/lib/finance';
 import { Card, CardLabel, CardValue } from '@/components/ui/Card';
 import { Briefcase, Users, Banknote, Bell } from 'lucide-react';
+export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
   const [business, investors, recentTxns, unreadNotifs] = await Promise.all([
