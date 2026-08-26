@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { formatUZS } from '@/lib/serialize';
 import { computeSingleOwnershipValue, formatOwnershipPercent } from '@/lib/finance';
+export const dynamic = 'force-dynamic';
 
 export default async function AdminInvestmentsPage() {
   const [investors, business] = await Promise.all([

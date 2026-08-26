@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { formatUZS } from '@/lib/serialize';
 import { Card } from '@/components/ui/Card';
 import { CreditCard, Banknote } from 'lucide-react';
+export const dynamic = 'force-dynamic';
 
 export default async function HistoryPage() {
   const transactions = await prisma.transaction.findMany({
