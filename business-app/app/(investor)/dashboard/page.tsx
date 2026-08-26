@@ -6,6 +6,7 @@ import { Card, CardLabel, CardValue } from '@/components/ui/Card';
 import { BusinessGrowthChart } from '@/components/charts/BusinessGrowthChart';
 import { Briefcase, Wallet, PiggyBank } from 'lucide-react';
 import Link from 'next/link';
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const user = await requireAuth();
