@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { formatUZS } from '@/lib/serialize';
 import { Card } from '@/components/ui/Card';
+export const dynamic = 'force-dynamic';
 
 // Admin can view all loan transactions here. Editing a transaction amount is
 // intentionally routed through a dedicated, audited server action (not shown
