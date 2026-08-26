@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { formatUZS } from '@/lib/serialize';
 import { computeSingleOwnershipValue, formatOwnershipPercent } from '@/lib/finance';
 import { Card, CardLabel, CardValue } from '@/components/ui/Card';
+export const dynamic = 'force-dynamic';
 
 export default async function InvestorProfilePage({ params }: { params: { id: string } }) {
   const [investor, business, transactions] = await Promise.all([
