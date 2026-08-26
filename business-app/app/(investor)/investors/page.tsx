@@ -3,6 +3,7 @@ import { formatUZS } from '@/lib/serialize';
 import { computeSingleOwnershipValue, formatOwnershipPercent } from '@/lib/finance';
 import { Card } from '@/components/ui/Card';
 import Link from 'next/link';
+export const dynamic = 'force-dynamic';
 
 export default async function InvestorsPage() {
   const [investors, business] = await Promise.all([
